@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -223,16 +224,23 @@ func detectByName(name string) string {
 	return ""
 }
 
-var overrideCTypeExtension = map[string]string{}
+var overrideCTypeExtension = map[string]string{
+	".js":  "text/javascript",
+	".css": "text/css",
+}
 
 // generateContentTypeCharset tries to find the filetype based on the
 // file content using the map above
 func generateContentTypeCharset(name string, content []byte) string {
-	if s, found := overrideCTypeExtension[name]; found {
+	log.Printf("Detecting content type for: %q extension: %q", name, filepath.Ext(name))
+
+	if s, found := overrideCTypeExtension[filepath.Ext(name)]; found {
 		return s
 	}
 
 	s := http.DetectContentType(content)
+
+	log.Printf("Found content type for %q to be: %s", name, s)
 
 	if _, name, certain := charset.DetermineEncoding(content, s); certain && !strings.Contains(s, ";") {
 		return s + "; charset=" + name
